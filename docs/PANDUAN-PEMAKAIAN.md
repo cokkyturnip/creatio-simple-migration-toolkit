@@ -227,7 +227,7 @@ penjelasan, dan opsi default ditandai `(default)`. Tekan Enter untuk memakai def
 
 | Langkah | Pertanyaan | Keterangan |
 |---|---|---|
-| 1 | Creatio base URL | Mis. `https://pegadaian.creatio.com`. URL yang berakhiran `/0/odata` juga diterima dan otomatis dirapikan |
+| 1 | Creatio base URL | Mis. `https://mycompany.creatio.com`. URL yang berakhiran `/0/odata` juga diterima dan otomatis dirapikan |
 | 2 | Runtime | `1` = **.NET Framework → `/0/odata` (default)**, `2` = .NET 8 → `/odata`. Setiap opsi disertai penjelasan di layar. Path kustom (mis. `/1/odata`) diisi manual lewat `CREATIO_ODATA_PATH` |
 | 3 | Autentikasi | `1` = **OAuth 2.0 (default, direkomendasikan Creatio)**, `2` = Forms, `3` = Basic. Masing-masing dijelaskan beserta konsekuensinya |
 | 3a | Username & password | Hanya untuk Forms/Basic. Password **tidak tampil** saat diketik; wizard menyarankan copy-paste |
@@ -244,7 +244,7 @@ mengonfirmasi penimpaan.
 Wizard juga bisa menulis ke lokasi lain:
 
 ```bash
-uv run csmt wizard --out config/pegadaian.env
+uv run csmt wizard --out config/mycompany.env
 ```
 
 ### 4.2 Cara 2: edit `.env` manual
@@ -256,12 +256,12 @@ cp .env.example .env
 Lalu isi nilainya. Contoh untuk OAuth 2.0 di site cloud:
 
 ```env
-CREATIO_BASE_URL=https://pegadaian.creatio.com
+CREATIO_BASE_URL=https://mycompany.creatio.com
 CREATIO_ODATA_PATH=/odata
 CREATIO_AUTH_MODE=oauth2
 CREATIO_CLIENT_ID=isi-client-id
 CREATIO_CLIENT_SECRET=isi-client-secret
-CREATIO_IDENTITY_URL=https://pegadaian-is.creatio.com
+CREATIO_IDENTITY_URL=https://mycompany-is.creatio.com
 CREATIO_ENTITY=Contact
 CREATIO_VERIFY_SSL=true
 ```
@@ -269,7 +269,7 @@ CREATIO_VERIFY_SSL=true
 Contoh untuk Forms (user integrasi, bukan Supervisor):
 
 ```env
-CREATIO_BASE_URL=https://pegadaian.creatio.com
+CREATIO_BASE_URL=https://mycompany.creatio.com
 CREATIO_ODATA_PATH=/odata
 CREATIO_AUTH_MODE=forms
 CREATIO_USERNAME=integration.user
@@ -282,7 +282,7 @@ CREATIO_VERIFY_SSL=true
 
 | Variabel | Flag CLI | Wajib | Keterangan |
 |---|---|---|---|
-| `CREATIO_BASE_URL` | `--base-url` | Ya | URL site, mis. `https://pegadaian.creatio.com` |
+| `CREATIO_BASE_URL` | `--base-url` | Ya | URL site, mis. `https://mycompany.creatio.com` |
 | `CREATIO_ODATA_PATH` | `--odata-path` | Tidak | `/odata` untuk .NET 8, `/0/odata` untuk .NET Framework. Default `/0/odata` bila tidak diisi |
 | `CREATIO_AUTH_MODE` | `--auth-mode` | Tidak | `oauth2`, `forms`, `basic`, atau `auto` (default). `auto` memilih OAuth 2.0 bila client ID dan secret tersedia, selain itu Forms |
 | `CREATIO_CLIENT_ID` | `--client-id` | Untuk OAuth 2.0 | Client ID dari konfigurasi OAuth di Creatio |
@@ -308,7 +308,7 @@ Jika satu nilai ditulis di beberapa tempat, yang dipakai adalah yang paling atas
 Gunakan `--env-file` bila konfigurasi tidak berada di folder kerja:
 
 ```bash
-uv run csmt check --env-file config/pegadaian.env
+uv run csmt check --env-file config/mycompany.env
 ```
 
 ### 4.5 Autentikasi
@@ -377,8 +377,8 @@ Contoh keluaran yang berhasil (angka dan URL bersifat ilustrasi):
 
 ```
 {
-  "root_url": "https://pegadaian.creatio.com",
-  "odata_url": "https://pegadaian.creatio.com/odata",
+  "root_url": "https://mycompany.creatio.com",
+  "odata_url": "https://mycompany.creatio.com/odata",
   "auth_mode": "oauth2",
   "collections": 120,
   "entity": "Contact",

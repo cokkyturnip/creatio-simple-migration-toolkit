@@ -39,7 +39,7 @@ client_id=...&client_secret=...&grant_type=client_credentials
   ("Authorization server Url for OAuth 2.0 integrations"). Ini **tidak sama** dengan
   URL site Creatio.
   - **Default site cloud:** `https://<subdomain>-is.creatio.com` (**hyphen**).
-    Contoh: `https://pegadaian.creatio.com` → `https://pegadaian-is.creatio.com`.
+    Contoh: `https://mycompany.creatio.com` → `https://mycompany-is.creatio.com`.
     Sebagian tenant memakai bentuk underscore (`<subdomain>_is`); validator mencoba
     keduanya, hyphen lebih dulu.
   - **Domain lain (on-site / custom):** tidak ada default, isi lewat `--identity-url` /
