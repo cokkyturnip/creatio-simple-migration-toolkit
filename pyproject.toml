@@ -1,0 +1,41 @@
+[project]
+name = "creatio-simple-migration-toolkit"
+version = "1.0.0"
+description = "Migrate spreadsheet (CSV) data to and from Creatio through the OData 4 web service"
+readme = "README.md"
+requires-python = ">=3.11"
+license = { text = "MIT" }
+authors = [{ name = "Cokky Turnip" }]
+keywords = ["creatio", "odata4", "csv", "migration", "import", "export", "etl"]
+dependencies = [
+    "requests>=2.31,<3",
+    "openpyxl>=3.1,<4",
+]
+
+# Alat pengembangan. `uv sync` memasangnya secara default;
+# `uv sync --no-dev` untuk mesin tanpa alat pengembangan.
+[dependency-groups]
+dev = ["pytest>=8", "ruff>=0.6"]
+
+[project.scripts]
+csmt = "csmt.cli:main"
+
+[build-system]
+requires = ["uv_build>=0.11,<0.12"]
+build-backend = "uv_build"
+
+[tool.uv]
+package = true
+
+[tool.uv.build-backend]
+module-name = "csmt"
+# flat layout: package lives at ./csmt, not ./src/csmt
+module-root = ""
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-ra"
+
+[tool.ruff]
+line-length = 100
+target-version = "py311"

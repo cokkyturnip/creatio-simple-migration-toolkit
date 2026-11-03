@@ -1,0 +1,38 @@
+{
+  "entity": "Contact",
+  "key_fields": ["Email"],
+  "constants": {
+    "ProcessListeners": 0
+  },
+  "defaults": {
+    "Active": true
+  },
+  "fields": {
+    "Nama Lengkap": {
+      "target": "Name",
+      "required": true,
+      "transform": "collapse_spaces"
+    },
+    "Email": {
+      "target": "Email",
+      "required": true,
+      "transform": "lower"
+    },
+    "Tanggal Lahir": {
+      "target": "BirthDate",
+      "type": "date"
+    },
+    "Negara": {
+      "target": "CountryId",
+      "type": "lookup",
+      "lookup": {
+        "entity": "Country",
+        "key_field": "Name"
+      }
+    },
+    "Skor": {
+      "target": "UsrScore",
+      "type": "decimal"
+    }
+  }
+}
