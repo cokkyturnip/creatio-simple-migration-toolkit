@@ -392,6 +392,23 @@ class MockCreatio:
                     return
 
                 if odata_rest == "$metadata":
+                    # Meniru Creatio .NET Framework: metadata JSON tidak
+                    # didukung dan menjawab 500 bila Accept application/json.
+                    accept = self.headers.get("Accept", "")
+                    if "application/xml" not in accept and "*/*" not in accept:
+                        self._send_json(
+                            500,
+                            {
+                                "error": {
+                                    "code": "",
+                                    "message": "An error has occurred.",
+                                    "innererror": {
+                                        "message": "The JSON metadata is not supported at this platform."
+                                    },
+                                }
+                            },
+                        )
+                        return
                     self._send_text(
                         200, mock.metadata_xml(), "application/xml; charset=utf-8"
                     )

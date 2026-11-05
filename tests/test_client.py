@@ -535,6 +535,43 @@ def test_html_login_page_raises_path_hint(mock: MockCreatio) -> None:
         client.close()
 
 
+def test_parse_csdl_rejects_html_login_page() -> None:
+    """XHTML halaman login harus dilaporkan sebagai HTML, bukan entity not found."""
+    html = (
+        '<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN">'
+        "<html><head><title>Logon</title></head><body></body></html>"
+    )
+    with pytest.raises(ODataError) as excinfo:
+        parse_csdl_entity_fields(html, "Contact")
+    assert "halaman HTML" in str(excinfo.value)
+    assert "was not found" not in str(excinfo.value)
+
+
+def test_fetch_metadata_sends_xml_accept() -> None:
+    """Creatio .NET Framework menolak metadata JSON: wajib Accept XML."""
+    accept_headers: list[str] = []
+    settings = Settings(
+        base_url="https://example.invalid",
+        auth_mode="basic",
+        username="u",
+        password="p",
+    )
+    client = ODataClient(settings)
+
+    def recording_request(method, path="", **kwargs):
+        accept = kwargs.get("headers", {}).get("Accept")
+        if accept:
+            accept_headers.append(accept)
+        raise ConfigError("stop")
+
+    client.request = recording_request  # type: ignore[method-assign]
+    with pytest.raises((ConfigError, ODataError)):
+        client.fetch_metadata()
+    client.close()
+
+    assert accept_headers == ["application/xml"]
+
+
 def test_hint_for_known_creatio_errors() -> None:
     from csmt.client import hint_for_odata_error
 

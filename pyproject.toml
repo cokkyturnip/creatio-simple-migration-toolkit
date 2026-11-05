@@ -1,6 +1,6 @@
 [project]
 name = "creatio-simple-migration-toolkit"
-version = "1.0.0"
+version = "1.0.1"
 description = "Migrate spreadsheet (CSV) data to and from Creatio through the OData 4 web service"
 readme = "README.md"
 requires-python = ">=3.11"

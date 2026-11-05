@@ -576,7 +576,16 @@ class ODataClient:
 
     # -------------------------------------------------------------- metadata
     def fetch_metadata(self) -> str:
-        response = self.request("GET", "$metadata", expected=(200,))
+        # Creatio .NET Framework tidak mendukung metadata JSON dan menjawab 500
+        # ("The JSON metadata is not supported at this platform") bila Accept
+        # berisi application/json. 500 juga masuk RETRY_STATUSES, jadi tanpa
+        # override ini sketch request diulang 5 kali sebelum gagal.
+        response = self.request(
+            "GET",
+            "$metadata",
+            expected=(200,),
+            headers={"Accept": "application/xml"},
+        )
         return response.text
 
     def entity_fields(self, entity: str) -> dict[str, str]:
@@ -662,6 +671,11 @@ def extract_record_id_from_location(location: str | None) -> str | None:
     return tail or None
 
 
+def _looks_like_html(xml_text: str) -> bool:
+    head = xml_text[:2048].lower()
+    return "<!doctype html" in head or "<html" in head
+
+
 def parse_csdl_entity_fields(xml_text: str, entity_set: str) -> dict[str, str]:
     """Map an entity set name to its property names and EDM types.
 
@@ -669,6 +683,15 @@ def parse_csdl_entity_fields(xml_text: str, entity_set: str) -> dict[str, str]:
     resolves the set -> type indirection and falls back to a type with the same
     name when the container is missing.
     """
+    if _looks_like_html(xml_text):
+        # Halaman login sering berupa XHTML yang sempat lolos parser XML dan
+        # berujung diagnosa "entity set not found"; periksa sebelum parsing.
+        raise ODataError(
+            "Endpoint mengembalikan halaman HTML, bukan dokumen CSDL. "
+            "Kemungkinan path OData salah (diarahkan ke halaman login) "
+            "atau token tidak diterima. Coba /0/odata dan /odata secara bergantian."
+        )
+
     try:
         root = ET.fromstring(xml_text)
     except ET.ParseError as exc:
@@ -690,6 +713,15 @@ def parse_csdl_entity_fields(xml_text: str, entity_set: str) -> dict[str, str]:
     if type_name is None:
         type_name = entity_set if entity_set in entity_types else None
     if type_name is None or type_name not in entity_types:
+        if _looks_like_html(xml_text):
+            # XHTML halaman login lolos parser XML lalu muncul sebagai
+            # "entity set not found"; diagnosisnya menyesatkan. Sampaikan
+            # penyebab aslinya seperti yang dilakukan untuk respons data.
+            raise ODataError(
+                "Endpoint mengembalikan halaman HTML, bukan dokumen CSDL. "
+                "Kemungkinan path OData salah (diarahkan ke halaman login) "
+                "atau token tidak diterima. Coba /0/odata dan /odata secara bergantian."
+            )
         raise ODataError(
             f"Entity set {entity_set!r} was not found in $metadata "
             f"(known: {', '.join(sorted(entity_types)[:15])})"

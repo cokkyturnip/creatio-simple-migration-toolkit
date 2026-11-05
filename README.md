@@ -1,8 +1,8 @@
 # CSMT — Creatio Simple Migration Toolkit
 
-[![CI Tests](https://img.shields.io/badge/tests-244%20passed-brightgreen.svg)](file:///Users/cokkyturnip/creatio-csv-import/tests)
-[![Python Version](https://img.shields.io/badge/python-≥%203.11-blue.svg)](file:///Users/cokkyturnip/creatio-csv-import/pyproject.toml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](file:///Users/cokkyturnip/creatio-csv-import/LICENSE)
+[![CI Tests](https://img.shields.io/badge/tests-246%20passed-brightgreen.svg)](https://github.com/cokkyturnip/creatio-csv-import/tree/main/tests)
+[![Python Version](https://img.shields.io/badge/python-≥%203.11-blue.svg)](https://github.com/cokkyturnip/creatio-csv-import/blob/main/pyproject.toml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/cokkyturnip/creatio-csv-import/blob/main/LICENSE)
 
 > **Navigasi Bahasa / Language Navigation:**  
 > 🇮🇩 [Bahasa Indonesia](#-bahasa-indonesia) | 🇬🇧 [English](#-english)  
@@ -32,10 +32,10 @@ Toolkit CLI mandiri untuk memindahkan data *spreadsheet* (CSV / XLSX) ke Creatio
 
 | Informasi | Spesifikasi |
 |---|---|
-| **Versi** | 1.0.0 |
+| **Versi** | 1.0.1 |
 | **Kebutuhan Runtime** | Python ≥ 3.11 (dikunci pada Python 3.12 via `.python-version`) |
 | **Dependensi Inti** | `requests`, `openpyxl` (eksekusi melalui runner cepat `uv`) |
-| **Status Pengujian** | 244 tes otomatis lulus · 2 skrip verifikasi lulus · `uv.lock` terkunci |
+| **Status Pengujian** | 246 tes otomatis lulus · 2 skrip verifikasi lulus · `uv.lock` terkunci |
 | **Versi Node.js** | Tersedia di [github.com/cokkyturnip/csmt-nodejs](https://github.com/cokkyturnip/csmt-nodejs) |
 | **Lisensi** | MIT |
 
@@ -109,7 +109,7 @@ cd creatio-csv-import
 # Menampilkan bantuan CLI (.venv otomatis dibuat pada eksekusi pertama)
 uv run csmt --help
 
-# Menjalankan seluruh test suite otomatis (244 tes)
+# Menjalankan seluruh test suite otomatis (246 tes)
 uv run pytest -q
 ```
 
@@ -264,10 +264,10 @@ Self-contained CLI toolkit to migrate spreadsheet (CSV / XLSX) data to and from 
 
 | Detail | Specification |
 |---|---|
-| **Version** | 1.0.0 |
+| **Version** | 1.0.1 |
 | **Runtime Requirements** | Python ≥ 3.11 (pinned to Python 3.12 via `.python-version`) |
 | **Core Dependencies** | `requests`, `openpyxl` (managed seamlessly via `uv`) |
-| **Test Verification** | 244 automated unit & integration tests passing · Locked `uv.lock` |
+| **Test Verification** | 246 automated unit & integration tests passing · Locked `uv.lock` |
 | **Node.js Port** | Available at [github.com/cokkyturnip/csmt-nodejs](https://github.com/cokkyturnip/csmt-nodejs) |
 | **License** | MIT |
 
@@ -341,7 +341,7 @@ cd creatio-csv-import
 # Display CLI help (automatically creates .venv on first run)
 uv run csmt --help
 
-# Run all 244 automated test suites
+# Run all 246 automated test suites
 uv run pytest -q
 ```
 
@@ -475,6 +475,7 @@ The mapping schema configures field normalization, conversions, and lookup linka
 
 ### Documentation & Additional Guides
 
-- [User Guide & Advanced Examples](file:///Users/cokkyturnip/creatio-csv-import/docs/PANDUAN-PEMAKAIAN.md) — In-depth usage walkthrough, complex mapping rules, and edge-case handling.
-- [Authentication Specification](file:///Users/cokkyturnip/creatio-csv-import/docs/AUTH.md) — Comprehensive OAuth 2.0, Identity Server, Forms, and CSRF token mechanics.
+- [User Guide & Advanced Examples](docs/PANDUAN-PEMAKAIAN.md) — In-depth usage walkthrough, complex mapping rules, and edge-case handling.
+- [Authentication Specification](docs/AUTH.md) — Comprehensive OAuth 2.0, Identity Server, Forms, and CSRF token mechanics.
+- [Changelog](CHANGELOG.md) — Release history and version notes.
 - [Node.js Port](https://github.com/cokkyturnip/csmt-nodejs) — TypeScript / Node.js alternative implementation of the CSMT toolkit.

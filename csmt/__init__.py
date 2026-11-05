@@ -29,4 +29,4 @@ __all__ = [
     "load_env_file",
 ]
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
