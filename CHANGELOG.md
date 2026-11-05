@@ -8,6 +8,11 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/), da
 
 ## [Unreleased]
 
+### Diubah
+
+- Nama paket PyPI diubah dari `creatio-simple-migration-toolkit` menjadi `csmt` agar konsisten dengan nama perintah pada kedua implementasi (`csmt` di Python, `csmt-nodejs` di Node.js). Nama modul impor tetap `csmt`, entry point tetap `csmt = csmt.cli:main`.
+- README: bagian instalasi `uvx csmt ...` (jalur tanpa kloning, setara `npx` di Node.js) dan catatan `pipx install csmt` / `pip install csmt`.
+
 ### Ditetapkan untuk rilis berikutnya (belum dikerjakan)
 
 - Port fitur `template` dari `csmt-nodejs@1.1.0` (template CSV/XLSX dari `$metadata` beserta mapping).

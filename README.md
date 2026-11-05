@@ -90,6 +90,17 @@ Setiap jaminan teknis di bawah ini didukung oleh uji regresi otomatis:
 
 CSMT direkomendasikan dijalankan melalui **[uv](https://docs.astral.sh/uv/)**. Anda tidak perlu memasang atau mengelola lingkungan virtual Python secara manual — `uv` akan otomatis mengunduh Python 3.12 secara terisolasi tanpa menyentuh Python bawaan sistem operasi.
 
+#### 0. Jalankan Tanpa Kloning (via `uvx`)
+
+Paket ini [_PyPI_](https://pypi.org/project/csmt/) dengan nama `csmt`:
+
+```bash
+uvx csmt wizard
+uvx csmt check --entity Contact
+```
+
+Tanpa memasang apa pun — `uvx` mengunduh paket ke cache lalu menjalankannya sekali, persis seperti `npx` pada ekosistem Node.js.
+
 #### 1. Pasang uv
 
 | Sistem Operasi | Perintah Instalasi |
@@ -112,6 +123,8 @@ uv run csmt --help
 # Menjalankan seluruh test suite otomatis (246 tes)
 uv run pytest -q
 ```
+
+Alternatif tanpa `uv`: `pipx install csmt` atau `pip install csmt` (perintah tetap `csmt`).
 
 ---
 
@@ -322,6 +335,17 @@ Every technical guarantee below is strictly enforced by automated regression sui
 
 CSMT is packaged and executed using **[uv](https://docs.astral.sh/uv/)**. You do not need to install Python manually — `uv` provisions an isolated Python 3.12 virtual environment automatically without modifying system packages (PEP 668 compliant).
 
+#### 0. Run Without Cloning (via `uvx`)
+
+This package is on [_PyPI_](https://pypi.org/project/csmt/) under the name `csmt`:
+
+```bash
+uvx csmt wizard
+uvx csmt check --entity Contact
+```
+
+Nothing to install — `uvx` downloads the package into its cache and runs it once, the same way `npx` works in the Node.js ecosystem.
+
 #### 1. Install uv
 
 | Operating System | Command |
@@ -344,6 +368,8 @@ uv run csmt --help
 # Run all 246 automated test suites
 uv run pytest -q
 ```
+
+Without `uv`: `pipx install csmt` or `pip install csmt` (the command stays `csmt`).
 
 ---
 

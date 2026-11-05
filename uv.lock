@@ -168,7 +168,7 @@ wheels = [
 ]
 
 [[package]]
-name = "creatio-simple-migration-toolkit"
+name = "csmt"
 version = "1.0.1"
 source = { editable = "." }
 dependencies = [
