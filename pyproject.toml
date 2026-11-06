@@ -1,6 +1,6 @@
 [project]
 name = "csmt"
-version = "1.0.1"
+version = "1.1.0"
 description = "Migrate spreadsheet (CSV) data to and from Creatio through the OData 4 web service"
 readme = "README.md"
 requires-python = ">=3.11"

@@ -1,6 +1,6 @@
 # CSMT — Creatio Simple Migration Toolkit
 
-[![CI Tests](https://img.shields.io/badge/tests-246%20passed-brightgreen.svg)](https://github.com/cokkyturnip/creatio-csv-import/tree/main/tests)
+[![CI Tests](https://img.shields.io/badge/tests-265%20passed-brightgreen.svg)](https://github.com/cokkyturnip/creatio-csv-import/tree/main/tests)
 [![Python Version](https://img.shields.io/badge/python-≥%203.11-blue.svg)](https://github.com/cokkyturnip/creatio-csv-import/blob/main/pyproject.toml)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/cokkyturnip/creatio-csv-import/blob/main/LICENSE)
 
@@ -32,10 +32,10 @@ Toolkit CLI mandiri untuk memindahkan data *spreadsheet* (CSV / XLSX) ke Creatio
 
 | Informasi | Spesifikasi |
 |---|---|
-| **Versi** | 1.0.1 |
+| **Versi** | 1.1.0 |
 | **Kebutuhan Runtime** | Python ≥ 3.11 (dikunci pada Python 3.12 via `.python-version`) |
 | **Dependensi Inti** | `requests`, `openpyxl` (eksekusi melalui runner cepat `uv`) |
-| **Status Pengujian** | 246 tes otomatis lulus · 2 skrip verifikasi lulus · `uv.lock` terkunci |
+| **Status Pengujian** | 265 tes otomatis lulus · 2 skrip verifikasi lulus · `uv.lock` terkunci |
 | **Versi Node.js** | Tersedia di [github.com/cokkyturnip/csmt-nodejs](https://github.com/cokkyturnip/csmt-nodejs) |
 | **Lisensi** | MIT |
 
@@ -120,7 +120,7 @@ cd creatio-csv-import
 # Menampilkan bantuan CLI (.venv otomatis dibuat pada eksekusi pertama)
 uv run csmt --help
 
-# Menjalankan seluruh test suite otomatis (246 tes)
+# Menjalankan seluruh test suite otomatis (265 tes)
 uv run pytest -q
 ```
 
@@ -155,6 +155,26 @@ uv run csmt import --csv data.csv --mapping mapping.json --mode upsert --batch-s
 uv run csmt import --csv data.csv --mapping mapping.json --mode upsert --resume
 ```
 
+#### Contoh Membuat Template Impor
+
+```bash
+# Template CSV berisi header seluruh kolom yang bisa ditulis, sekaligus
+# mapping.json siap pakai (kolom lookup diisi nama rekaman, bukan GUID)
+uv run csmt template --entity Contact --out contact-template.csv \
+    --with-mapping mapping.json --key Email --sample
+
+# Template Excel: dua sheet ("Contact" untuk data, "schema" untuk tipe kolom)
+uv run csmt template --entity Contact --out contact-template.xlsx --sample
+```
+
+Kolom lookup memakai nama navigasi tanpa akhiran `Id` — `Owner`, `Account`, `Type` — dan diisi label/nama rekaman. Mapping yang dihasilkan menerjemahkannya ke properti OData yang benar:
+
+```json
+"Owner": { "type": "lookup", "target": "OwnerId", "lookup": { "entity": "Contact", "key": "Name" } }
+```
+
+Kolom sistem (`Id`, `CreatedOn`, `CreatedById`, `ModifiedOn`, `ModifiedById`, `ProcessListeners`) dan kolom `Edm.Stream` tidak disertakan; gunakan `--include-system` bila kolom sistem tetap dibutuhkan. Format keluaran ditentukan dari ekstensi `--out` (`.csv` atau `.xlsx`), dan `--lookup-key` mengganti field pencocokan lookup. Pada output XLSX, sheet kedua bernama `schema` memuat `header`, `target`, `edm_type`, `nullable`, `max_length`, dan `lookup_entity`.
+
 #### Contoh Ekspor Data
 
 ```bash
@@ -176,6 +196,7 @@ uv run csmt export --entity Contact --out contacts.xlsx \
 | `wizard` | Asisten konfigurasi interaktif untuk menghasilkan `.env` (URL, autentikasi, kredensial). |
 | `check` | Memverifikasi ketersediaan endpoint OData, validitas token/kredensial, dan izin entitas. |
 | `schema` | Menampilkan seluruh field dan tipe data EDM dari entitas berdasarkan `$metadata`. |
+| `template` | Menghasilkan template impor CSV/XLSX (plus `mapping.json` opsional) dari `$metadata`. |
 | `init-mapping` | Membaca header berkas CSV/XLSX dan menghasilkan kerangka `mapping.json`. |
 | `import` | Memproses impor data ke Creatio (`create`, `update`, `upsert`, batch, resume, audit). |
 | `export` | Mengunduh rekaman dari Creatio ke format CSV atau XLSX. |
@@ -277,10 +298,10 @@ Self-contained CLI toolkit to migrate spreadsheet (CSV / XLSX) data to and from 
 
 | Detail | Specification |
 |---|---|
-| **Version** | 1.0.1 |
+| **Version** | 1.1.0 |
 | **Runtime Requirements** | Python ≥ 3.11 (pinned to Python 3.12 via `.python-version`) |
 | **Core Dependencies** | `requests`, `openpyxl` (managed seamlessly via `uv`) |
-| **Test Verification** | 246 automated unit & integration tests passing · Locked `uv.lock` |
+| **Test Verification** | 265 automated unit & integration tests passing · Locked `uv.lock` |
 | **Node.js Port** | Available at [github.com/cokkyturnip/csmt-nodejs](https://github.com/cokkyturnip/csmt-nodejs) |
 | **License** | MIT |
 
@@ -365,7 +386,7 @@ cd creatio-csv-import
 # Display CLI help (automatically creates .venv on first run)
 uv run csmt --help
 
-# Run all 246 automated test suites
+# Run all 265 automated test suites
 uv run pytest -q
 ```
 
@@ -400,6 +421,25 @@ uv run csmt import --csv data.csv --mapping mapping.json --mode upsert --batch-s
 uv run csmt import --csv data.csv --mapping mapping.json --mode upsert --resume
 ```
 
+#### Generating an Import Template
+
+```bash
+# CSV template with a header for every writable column plus a ready-to-use mapping
+uv run csmt template --entity Contact --out contact-template.csv \
+    --with-mapping mapping.json --key Email --sample
+
+# Excel template: two sheets ("Contact" for data, "schema" for column types)
+uv run csmt template --entity Contact --out contact-template.xlsx --sample
+```
+
+Lookup columns use the navigation name without the `Id` suffix — `Owner`, `Account`, `Type` — and hold the record label/name. The generated mapping resolves them against the real OData property:
+
+```json
+"Owner": { "type": "lookup", "target": "OwnerId", "lookup": { "entity": "Contact", "key": "Name" } }
+```
+
+System columns (`Id`, `CreatedOn`, `CreatedById`, `ModifiedOn`, `ModifiedById`, `ProcessListeners`) and `Edm.Stream` columns are omitted; pass `--include-system` to keep the former. The output format follows the `--out` extension (`.csv` or `.xlsx`), and `--lookup-key` changes the lookup match field. In XLSX output the second sheet, `schema`, lists `header`, `target`, `edm_type`, `nullable`, `max_length`, and `lookup_entity`.
+
 #### Export Examples
 
 ```bash
@@ -421,6 +461,7 @@ uv run csmt export --entity Contact --out contacts.xlsx \
 | `wizard` | Interactive setup to configure credentials and generate `.env`. |
 | `check` | Verifies OData endpoint availability, authentication, and entity read access. |
 | `schema` | Inspects and lists all available entity attributes and EDM data types. |
+| `template` | Generates a CSV/XLSX import template (and optional `mapping.json`) from `$metadata`. |
 | `init-mapping` | Scaffolds a starter `mapping.json` from spreadsheet headers. |
 | `import` | Executes migration pipeline (`create`/`update`/`upsert`, batch, resume, audit). |
 | `export` | Extracts Creatio records to CSV or Excel with lookup resolution. |

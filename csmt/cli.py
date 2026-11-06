@@ -221,6 +221,34 @@ def build_parser() -> argparse.ArgumentParser:
     schema_parser.add_argument("--entity", required=True, help="Entity set name")
     schema_parser.add_argument("--json", action="store_true", help="Emit JSON instead of a table")
 
+    # -- template ---------------------------------------------------------
+    template_parser = subparsers.add_parser(
+        "template", help="Generate a CSV/XLSX import template (and mapping) from $metadata"
+    )
+    _add_connection_args(template_parser)
+    _add_logging_args(template_parser)
+    template_parser.add_argument("--entity", required=True, help="Entity set name")
+    template_parser.add_argument(
+        "--out", required=True, help="Output file; .csv or .xlsx decides the format"
+    )
+    template_parser.add_argument(
+        "--with-mapping", help="Also write a starter mapping JSON to this path"
+    )
+    template_parser.add_argument("--key", help="Comma separated key column(s) for the mapping")
+    template_parser.add_argument("--sample", action="store_true", help="Include one example row")
+    template_parser.add_argument(
+        "--include-system", action="store_true", help="Include system/read-only columns"
+    )
+    template_parser.add_argument(
+        "--lookup-key",
+        default="Name",
+        help="Lookup field the cell value is matched against (default: Name)",
+    )
+    template_parser.add_argument("--delimiter", default=",", help="CSV delimiter (default: ,)")
+    template_parser.add_argument(
+        "--no-bom", action="store_true", help="Write CSV without a UTF-8 BOM"
+    )
+
     # -- init-mapping -----------------------------------------------------
     init_parser = subparsers.add_parser(
         "init-mapping", help="Generate a starter mapping JSON from CSV headers"
@@ -426,6 +454,57 @@ def cmd_schema(args: argparse.Namespace) -> int:
     print(f"Entity set: {args.entity} ({len(fields)} fields)")
     for name in sorted(fields):
         print(f"  {name:<{width}}  {fields[name]}")
+    return 0
+
+
+def cmd_template(args: argparse.Namespace) -> int:
+    from .template import (
+        build_template_columns,
+        build_template_mapping,
+        describe_columns,
+        template_format_for,
+        write_template,
+    )
+
+    template_format_for(args.out)  # validasi ekstensi sebelum menyentuh jaringan
+    settings = build_settings(args)
+    client = ODataClient(settings)
+    try:
+        details = client.entity_field_details(args.entity)
+    finally:
+        client.close()
+
+    columns = build_template_columns(
+        details,
+        include_system=args.include_system,
+        lookup_key=args.lookup_key,
+    )
+    out_path = Path(args.out).expanduser()
+    used = write_template(
+        out_path,
+        args.entity,
+        columns,
+        sample=args.sample,
+        delimiter=args.delimiter,
+        bom=not args.no_bom,
+    )
+    summary = describe_columns(columns)
+    print(f"Wrote {used.upper()} template with {summary['total']} columns to {out_path}")
+    print(
+        f"  {summary['scalar']} scalar, {summary['lookup']} lookup "
+        f"(matched by {args.lookup_key!r})"
+    )
+
+    if args.with_mapping:
+        mapping_path = Path(args.with_mapping).expanduser()
+        mapping_path.parent.mkdir(parents=True, exist_ok=True)
+        document = build_template_mapping(
+            columns, entity=args.entity, key_columns=parse_keys(args.key)
+        )
+        mapping_path.write_text(
+            json.dumps(document, indent=2, ensure_ascii=False) + "\n", encoding="utf-8"
+        )
+        print(f"Wrote starter mapping to {mapping_path}")
     return 0
 
 
@@ -1055,6 +1134,7 @@ COMMANDS = {
     "import": cmd_import,
     "check": cmd_check,
     "schema": cmd_schema,
+    "template": cmd_template,
     "init-mapping": cmd_init_mapping,
     "export": cmd_export,
     "wizard": cmd_wizard,

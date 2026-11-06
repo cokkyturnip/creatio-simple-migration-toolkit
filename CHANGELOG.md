@@ -8,14 +8,23 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/), da
 
 ## [Unreleased]
 
+_Belum ada perubahan setelah 1.1.0._
+
+## [1.1.0] - 2026-11-06
+
+### Ditambahkan
+
+- Perintah `template`: menghasilkan template impor CSV atau XLSX langsung dari `$metadata`, konsisten dengan `csmt-nodejs@1.1.0`. Opsi: `--with-mapping` (menulis `mapping.json` sekaligus), `--sample` (satu baris contoh), `--key`, `--include-system`, `--lookup-key`, `--delimiter`, `--no-bom`. Format keluaran ditentukan dari ekstensi `--out` (`.csv`/`.xlsx`).
+- Kolom lookup memakai nama navigasi tanpa akhiran `Id` (`Owner`, `Account`, `Type`) dan diisi label/nama rekaman; mapping yang dihasilkan memakai `lookup.key` (default `Name`).
+- Output XLSX berisi dua sheet: data (header + baris contoh opsional) dan `schema` (`header`, `target`, `edm_type`, `nullable`, `max_length`, `lookup_entity`).
+- `parse_csdl_field_details()` dan `ODataClient.entity_field_details()`: membaca `Nullable`, `MaxLength`, `Key`, dan `NavigationProperty` dari metadata sehingga lookup dikenali tanpa konfigurasi manual.
+- 19 tes baru untuk template dan parsing CSDL (total 265).
+
 ### Diubah
 
-- Nama paket PyPI diubah dari `creatio-simple-migration-toolkit` menjadi `csmt` agar konsisten dengan nama perintah pada kedua implementasi (`csmt` di Python, `csmt-nodejs` di Node.js). Nama modul impor tetap `csmt`, entry point tetap `csmt = csmt.cli:main`.
-- README: bagian instalasi `uvx csmt ...` (jalur tanpa kloning, setara `npx` di Node.js) dan catatan `pipx install csmt` / `pip install csmt`.
-
-### Ditetapkan untuk rilis berikutnya (belum dikerjakan)
-
-- Port fitur `template` dari `csmt-nodejs@1.1.0` (template CSV/XLSX dari `$metadata` beserta mapping).
+- Nama paket distribusi menjadi `csmt` (sebelumnya `creatio-simple-migration-toolkit`) agar konsisten dengan nama perintah di kedua implementasi. Nama modul impor tetap `csmt`; entry point tetap `csmt = csmt.cli:main`.
+- README: bagian "Jalankan Tanpa Kloning" via `uvx csmt` (setara `npx`), catatan `pipx install csmt`, dan bagian perintah `template` pada dua bahasa.
+- `parse_csdl_entity_fields()` kini diturunkan dari `parse_csdl_field_details()`; API dan bentuk hasilnya tidak berubah.
 
 ## [1.0.1] - 2026-11-06
 
@@ -32,10 +41,10 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/), da
 
 | Penyelamatan | csmt-nodejs | Python toolkit ini |
 |---|---|---|
-| Hint wizard pakai nama paket yang benar | Diperbaiki di `1.0.1` | Sudah benar sejak awal (`uv run csmt check`), tidak perbaikan diperlukan |
+| Hint wizard pakai nama paket yang benar | Diperbaiki di `1.0.1` | Sudah benar sejak awal (`uv run csmt check`), tidak perlu perbaikan |
 | `$metadata` dengan `Accept: application/xml` | Diperbaiki di `1.0.1` | **Diperbaiki di `1.0.1`** |
-| Perintah `template` (CSV/XLSX dari `$metadata`) | Rilis di `1.1.0` | Belum tersedia; jalur penerbitan `Unreleased` |
-| Nomor versi dibaca otomatis | Diperbaiki di `1.1.0` | Tidak berlaku — versi Python diambil dari `package.json` sendiri (basis sama `pyproject.toml`) |
+| Perintah `template` (CSV/XLSX dari `$metadata`) | Rilis di `1.1.0` | **Rilis di `1.1.0`** |
+| Nomor versi dibaca otomatis | Diperbaiki di `1.1.0` | Tidak berlaku — versi Python diambil dari `__init__.py` (harus sinkron dengan `pyproject.toml`) |
 
 ## [1.0.0] - 2026-11-04
 
@@ -52,6 +61,7 @@ Format mengikuti [Keep a Changelog](https://keepachangelog.com/id-ID/1.1.0/), da
 - Jalur audit: laporan akhir CSV, ringkasan, dan jurnal JSONL per baris.
 - Autentikasi OAuth 2.0 client credentials, `forms`, dan `basic`, plus perintah `wizard` yang menulis `.env` dengan izin `0600`.
 
-[Unreleased]: https://github.com/cokkyturnip/creatio-csv-import/compare/v1.0.1...HEAD
+[Unreleased]: https://github.com/cokkyturnip/creatio-csv-import/compare/v1.1.0...HEAD
+[1.1.0]: https://github.com/cokkyturnip/creatio-csv-import/compare/v1.0.1...v1.1.0
 [1.0.1]: https://github.com/cokkyturnip/creatio-csv-import/compare/v1.0.0...v1.0.1
 [1.0.0]: https://github.com/cokkyturnip/creatio-csv-import/releases/tag/v1.0.0

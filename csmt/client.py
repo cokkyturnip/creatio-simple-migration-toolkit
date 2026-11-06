@@ -592,6 +592,10 @@ class ODataClient:
         """Return ``{field_name: edm_type}`` for an entity set, parsed from CSDL."""
         return parse_csdl_entity_fields(self.fetch_metadata(), self._require_entity(entity))
 
+    def entity_field_details(self, entity: str) -> list[CsdlFieldDetail]:
+        """Return every field with CSDL attributes (nullable, key, lookup, ...)."""
+        return parse_csdl_field_details(self.fetch_metadata(), self._require_entity(entity))
+
     # --------------------------------------------------------------- helpers
     def service_document(self) -> dict[str, Any]:
         response = self.request("GET", "", expected=(200,))
@@ -676,22 +680,28 @@ def _looks_like_html(xml_text: str) -> bool:
     return "<!doctype html" in head or "<html" in head
 
 
-def parse_csdl_entity_fields(xml_text: str, entity_set: str) -> dict[str, str]:
-    """Map an entity set name to its property names and EDM types.
+@dataclass(frozen=True)
+class LookupRef:
+    """Navigation name plus the entity it points to (e.g. ``Owner`` -> ``Contact``)."""
 
-    ``$metadata`` declares entity types and a container with entity sets. This
-    resolves the set -> type indirection and falls back to a type with the same
-    name when the container is missing.
-    """
-    if _looks_like_html(xml_text):
-        # Halaman login sering berupa XHTML yang sempat lolos parser XML dan
-        # berujung diagnosa "entity set not found"; periksa sebelum parsing.
-        raise ODataError(
-            "Endpoint mengembalikan halaman HTML, bukan dokumen CSDL. "
-            "Kemungkinan path OData salah (diarahkan ke halaman login) "
-            "atau token tidak diterima. Coba /0/odata dan /odata secara bergantian."
-        )
+    navigation: str
+    entity: str
 
+
+@dataclass(frozen=True)
+class CsdlFieldDetail:
+    """One CSDL property with the attributes that matter for templates."""
+
+    name: str
+    type: str
+    nullable: bool = True
+    max_length: int | None = None
+    key: bool = False
+    lookup: LookupRef | None = None
+
+
+def _csdl_index(xml_text: str) -> tuple[dict[str, ET.Element], dict[str, str]]:
+    """Return ``(entity_types, entity_sets)`` from a CSDL document."""
     try:
         root = ET.fromstring(xml_text)
     except ET.ParseError as exc:
@@ -703,53 +713,120 @@ def parse_csdl_entity_fields(xml_text: str, entity_set: str) -> dict[str, str]:
         if name:
             entity_types[name] = element
 
-    type_name: str | None = None
+    entity_sets: dict[str, str] = {}
     for element in root.iter(f"{{{EDM_NS}}}EntitySet"):
-        if element.get("Name") == entity_set:
+        name = element.get("Name")
+        if name:
             raw = element.get("EntityType") or ""
-            type_name = raw.split(".")[-1] or None
-            break
+            entity_sets[name] = raw.split(".")[-1] if raw else name
 
-    if type_name is None:
-        type_name = entity_set if entity_set in entity_types else None
+    return entity_types, entity_sets
+
+
+def _resolve_type_name(
+    entity_types: dict[str, ET.Element], entity_sets: dict[str, str], entity_set: str
+) -> str:
+    type_name = entity_sets.get(entity_set)
+    if type_name is None and entity_set in entity_types:
+        type_name = entity_set
     if type_name is None or type_name not in entity_types:
-        if _looks_like_html(xml_text):
-            # XHTML halaman login lolos parser XML lalu muncul sebagai
-            # "entity set not found"; diagnosisnya menyesatkan. Sampaikan
-            # penyebab aslinya seperti yang dilakukan untuk respons data.
-            raise ODataError(
-                "Endpoint mengembalikan halaman HTML, bukan dokumen CSDL. "
-                "Kemungkinan path OData salah (diarahkan ke halaman login) "
-                "atau token tidak diterima. Coba /0/odata dan /odata secara bergantian."
-            )
         raise ODataError(
             f"Entity set {entity_set!r} was not found in $metadata "
             f"(known: {', '.join(sorted(entity_types)[:15])})"
         )
+    return type_name
 
-    fields: dict[str, str] = {}
+
+def parse_csdl_field_details(xml_text: str, entity_set: str) -> list[CsdlFieldDetail]:
+    """Return every property of ``entity_set`` with its CSDL attributes.
+
+    Lookup columns are detected from ``NavigationProperty`` entries: a GUID
+    property named ``OwnerId`` whose ``Owner`` navigation exists is a lookup to
+    the navigation target entity. Collection navigations are ignored.
+    """
+    if _looks_like_html(xml_text):
+        # Halaman login sering berupa XHTML yang sempat lolos parser XML dan
+        # berujung diagnosa "entity set not found"; periksa sebelum parsing.
+        raise ODataError(
+            "Endpoint mengembalikan halaman HTML, bukan dokumen CSDL. "
+            "Kemungkinan path OData salah (diarahkan ke halaman login) "
+            "atau token tidak diterima. Coba /0/odata dan /odata secara bergantian."
+        )
+
+    entity_types, entity_sets = _csdl_index(xml_text)
+    type_name = _resolve_type_name(entity_types, entity_sets, entity_set)
+
+    details: dict[str, CsdlFieldDetail] = {}
     visited: set[str] = set()
 
-    def collect(type_name: str, *, depth: int = 0) -> None:
+    def collect(current: str, *, depth: int = 0) -> None:
         # CSDL entities inherit properties from their ``BaseType``; the walk is
         # defensive against cycles and depth so metadata never hangs the run.
-        if depth > 10 or type_name in visited or type_name not in entity_types:
+        if depth > 10 or current in visited or current not in entity_types:
             return
-        visited.add(type_name)
-        for prop in entity_types[type_name].findall(f"{{{EDM_NS}}}Property"):
+        visited.add(current)
+        element = entity_types[current]
+
+        nav_targets: dict[str, str] = {}
+        for nav in element.findall(f"{{{EDM_NS}}}NavigationProperty"):
+            nav_name = nav.get("Name")
+            nav_type = nav.get("Type") or ""
+            if not nav_name or nav_type.startswith("Collection("):
+                continue
+            nav_targets[nav_name] = nav_type.split(".")[-1]
+
+        key_names = {
+            ref.get("Name")
+            for ref in element.findall(f"{{{EDM_NS}}}Key/{{{EDM_NS}}}PropertyRef")
+            if ref.get("Name")
+        }
+
+        for prop in element.findall(f"{{{EDM_NS}}}Property"):
             name = prop.get("Name")
-            if name:
-                fields[name] = prop.get("Type") or ""
-        base = entity_types[type_name].get("BaseType")
+            if not name or name in details:
+                continue
+
+            edm_type = prop.get("Type") or ""
+            raw_max = prop.get("MaxLength")
+            lookup: LookupRef | None = None
+            if edm_type == "Edm.Guid":
+                direct = nav_targets.get(name)
+                stripped = nav_targets.get(name[:-2]) if name.endswith("Id") else None
+                target = direct or stripped
+                if target:
+                    lookup = LookupRef(
+                        navigation=name if direct else name[:-2], entity=target
+                    )
+
+            details[name] = CsdlFieldDetail(
+                name=name,
+                type=edm_type,
+                nullable=prop.get("Nullable") != "false",
+                max_length=int(raw_max) if raw_max and raw_max.isdigit() else None,
+                key=name in key_names,
+                lookup=lookup,
+            )
+
+        base = element.get("BaseType")
         if base:
             collect(base.split(".")[-1], depth=depth + 1)
 
     collect(type_name)
-    return fields
+    return list(details.values())
+
+
+def parse_csdl_entity_fields(xml_text: str, entity_set: str) -> dict[str, str]:
+    """Map an entity set name to its property names and EDM types.
+
+    Thin wrapper over :func:`parse_csdl_field_details` kept for compatibility.
+    """
+    return {detail.name: detail.type for detail in parse_csdl_field_details(xml_text, entity_set)}
 
 
 __all__ = [
     "BATCH_CONTENT_TYPE",
+    "CsdlFieldDetail",
+    "LookupRef",
     "IDEMPOTENT_METHODS",
     "BatchResult",
     "JSON_CONTENT_TYPE",
@@ -760,4 +837,5 @@ __all__ = [
     "odata_escape",
     "odata_literal",
     "parse_csdl_entity_fields",
+    "parse_csdl_field_details",
 ]
